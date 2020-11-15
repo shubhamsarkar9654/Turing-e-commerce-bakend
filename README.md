@@ -7,7 +7,7 @@ Created E-Commerce website backend where customer can buy any product  and if co
   * `sudo apt-get install nodejs`
 
 Clone this app using the command:
-  * `git clone https://github.com/shubhamsarkar9654/turing-ecommerce-bakend`
+  * `git clone https://github.com/shubhamsarkar9654/Turing-e-commerce-bakend`
 
 ## Instructions of usage:
 

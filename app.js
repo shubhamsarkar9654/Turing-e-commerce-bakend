@@ -18,6 +18,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+
 app.get('/',(req,res) => {
     res.status(200).send('Welcome to turing project...');
 });
@@ -31,6 +32,10 @@ app.use('/tax',taxRoute);//6
 app.use('/shipping/regions',shippingRoute);//7
 app.use('/shoppingcart',shoppingCartRoute);//8
 app.use('/orders',ordersRoute);//9
+// for wrong route
+app.use((req,res) => {
+    res.status(404).send('Page not found')
+})
 
 app.listen(3000,() => {
     console.log('server listing through 3000...');

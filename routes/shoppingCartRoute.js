@@ -9,7 +9,11 @@ router.get('/generateUniqueId',verifyToken,shoppingCartController.getGenerateCar
 router.post('/add',verifyToken,shoppingCartController.postProductInCart);
 router.get('/:cart_id',verifyToken,shoppingCartController.getProductsByCartId);
 router.put('/update/:item_id',verifyToken,shoppingCartController.putCartByItemId);
-router.delete('/empty/:cart_id',verifyToken,shoppingCartController.deleteCart)
-router.get('/totalAmount/:cart_id',verifyToken,shoppingCartController.getTotalAmoutByCartId)
+router.delete('/empty/:cart_id',verifyToken,shoppingCartController.deleteCart);
+router.get('/totalAmount/:cart_id',verifyToken,shoppingCartController.getTotalAmoutByCartId);
+router.get('/saveForLater/:item_id',verifyToken,shoppingCartController.getProductsForlatter);
+router.get('/getSaved/:cart_id',verifyToken,shoppingCartController.getProductForLatterByCartId);
+router.get('/moveToCart/:item_id',verifyToken,shoppingCartController.getProductToCart);
+router.delete('/removeProduct/:item_id',verifyToken,shoppingCartController.deleteProductByItemId)
 
 module.exports = router;

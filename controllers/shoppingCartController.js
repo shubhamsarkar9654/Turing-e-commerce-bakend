@@ -4,6 +4,7 @@ const knex = require('../util/database');
 const uniqid = require('uniqid');
 const error = require('../util/errorHandler');
 const { table } = require('../util/database');
+const { TokenExpiredError } = require('jsonwebtoken');
 
 // generate unique cart_id 
 exports.getGenerateCartId = (req,res) => {
@@ -180,30 +181,126 @@ exports.getTotalAmoutByCartId = (req,res) => {
 }
 
 // save products for latter
-// exports.getProductsForlatter = (req,res) => {
-//     const {item_id} = req.params
-//     knex.schema.hasTable('save_latter_cart')
-//         const dumpProductForLatter = () => {
-//             k
-//         }
-//         .then(exists => {
-//             if (!exists){
-//                 return  knex.schema.createTable('save_latter_cart',table => {
-//                     table.integer('item_id').primary()
-//                     table.string('cart_id')
-//                     table.integer('product_id')
-//                     table.string('attributes')
-//                     table.string('quantity')   
-//                 })
-//                 .then(() => {
+exports.getProductsForlatter = (req,res) => {
+    const {item_id} = req.params
+    const saveProductForLatter = () => {
+            knex('shopping_cart')
+                .where('item_id',item_id)
+                .select('item_id','cart_id','product_id','attributes','quantity')
+                .then(cartData => {
+                    knex('save_product_for_later')
+                        .insert(cartData[0])
+                        .then(() => {
+                            knex('shopping_cart')
+                                .where('item_id',item_id)
+                                .del()
+                                .then(() => {
+                                    res.json({
+                                        note: 'product_saved for latter'
+                                    })
+                                })
+                                .catch(err => {
+                                    console.log(err)
+                                    res.status(500).json(error.error500)
+                                })
+                        })
+                        .catch(err => {
+                            console.log(err)
+                            res.status(500).json(error.error500)
+                        })
+                })
+                .catch(err => {
+                    console.log(err)
+                    res.status(500).json(error.error500)
+                })
+    }
+    knex.schema.hasTable('save_product_for_later')
+        .then(exists => {
+            if (!exists){
+                return  knex.schema.createTable('save_product_for_later',table => {
+                    table.integer('item_id').primary()
+                    table.string('cart_id')
+                    table.integer('product_id')
+                    table.string('attributes')
+                    table.string('quantity')   
+                })
+                .then(() => {
+                    saveProductForLatter()
+                })                 
+            }else{
+                saveProductForLatter()
+            }
 
-//                 })
-                    
-//             }
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json(error.error500)
+        })
+}
 
-//         })
-//         .catch(err => {
-//             console.log(err)
-//             res.status(500).json(error.error500)
-//         })
-// }
+// get products from save_product by cart_id
+exports.getProductForLatterByCartId = (req,res) => {
+    const {cart_id} = req.params
+    knex('save_product_for_later')
+        .join('product','product.product_id','save_product_for_later.product_id')
+        .where('cart_id',cart_id)
+        .select('item_id','name','attributes','price')
+        .then(cartData => {  
+            res.send(cartData[0])
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json(error.error500)
+        })
+}
+
+// move a product from saveProductForLater to cart
+exports.getProductToCart = (req,res) => {
+    const {item_id} = req.params
+    knex('save_product_for_later')
+        .where('item_id',item_id)
+        .then(cartData => {
+            cartData[0].added_on = new Date()
+            knex('shopping_cart')
+                .insert(cartData[0])
+                .then(() => {
+                    knex('save_product_for_later')
+                        .where('item_id',item_id)
+                        .del()
+                        .then(()  => {
+                            res.json({
+                                message: 'product move to cart...'
+                            })
+                        })
+                        .catch(err => {
+                            console.log(err)
+                            res.status(500).json(error.error500)
+                        })
+                })
+                .catch(err => {
+                    console.log(err)
+                    res.status(500).json(error.error500)
+                })              
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json(error.error500)
+        }) 
+}
+
+// remove a product from shopping by item_id
+exports.deleteProductByItemId = (req,res) => {
+    const {item_id} = req.params
+    knex('shopping_cart')
+        .where('item_id',item_id)
+        .del()
+        .then(() => {
+            res.json({
+                message: 'product deleted'
+            })
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json(error.error500)
+        })
+}
